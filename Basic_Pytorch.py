@@ -63,3 +63,31 @@ a.add_(10)
 print(a)
 print(b)
 ## Numpy to tensor
+a=np.ones(5)
+b=torch.from_numpy(a)
+## If tensor on cpu and not on gpu and both objects will share the same memory
+# changes in one will be reflected in other.
+print(b)
+
+
+''' Checking device for gpu '''
+if torch.cuda.is_available():
+    device=torch.device("cuda")
+
+## Move an object to gpu
+    x=torch.ones(5,device=device)
+    print(x)
+    ## Or add it manually
+    y=torch.ones(5)
+    y=y.to(device)
+    ## Numpy can only take cpu objects
+    try:
+        z=y.numpy() ## Raise an error here
+    except: 
+        z=y.to("cpu")   ## Make a cpu device
+        z=z.numpy()
+else:
+    print("No cuda")
+## Calculate gradients for this object during optimization steps
+y=torch.ones(5, requires_grad=True) # bydefault it is False
+print(y)
