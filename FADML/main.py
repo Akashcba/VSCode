@@ -235,7 +235,7 @@ clf4 = clf4.to(device)
 wandb.watch(clf4,log="all")
 run(clf4, 
 criterion=nn.MSELoss(), 
-optimizer=optim.Adam(cl4.parameters(), lr=0.01), 
+optimizer=optim.Adam(clf4.parameters(), lr=0.01), 
 mse=False,
 epochs=50)
 ## Plotting the Confusion Matrix
