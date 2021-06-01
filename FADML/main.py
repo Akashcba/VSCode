@@ -4,24 +4,42 @@
 20BM6JP46
 '''
 ## Sample Code Shared
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
-import torch.backends.cudnn as cudnn
-import numpy as np
-import torchvision
-import torchvision.transforms as transforms
-import wandb
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
-import os
-import argparse
+import subprocess
+import sys
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+try:
+    print("Importing Necessary Libraries")
+
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    import torch.nn.functional as F
+    import torch.backends.cudnn as cudnn
+    import numpy as np
+    import torchvision
+    import torchvision.transforms as transforms
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import argparse
+    print("Importing Done...")
+except Exception as e:
+    print(e)
+    raise Exception("Library Not Installed...")
+
+try:
+    import wandb
+except:
+    print("WanDB Not installed\n")
+    install("wandb")
+    print("\nInstallation Compelete\n")
+    import wandb
 
 import model
-
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
