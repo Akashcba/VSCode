@@ -108,7 +108,7 @@ def train(epoch, network, criterion, optimizer, mse):
     wandb.log({"Epoch":epoch," Training Loss": train_loss})
 
  
-def test(epoch, network, criterion, mse):
+def test(epoch, network, criterion, mse, name=None):
     global best_acc
     network.eval()
     #test_images = []
@@ -137,7 +137,7 @@ def test(epoch, network, criterion, mse):
             #Saving the new value of best_accuracy
             best_acc = model_acc
             # Save checkpoint for the model which yields best accuracy
-            PATH = f'./best_model_updated.pth'
+            PATH = f'./best_model_{name}.pth'
             torch.save(network.state_dict(), PATH)
     # Write test set losses to losstest.txt for each epoch
         global test_losses
@@ -177,12 +177,12 @@ def cm_plot(net):
   plt.show()
 
 
-def run(network, criterion, optimizer, mse, epochs):
+def run(network, criterion, optimizer, mse, epochs, name=None):
     for epoch in range(epochs):
         print("Training the model")
         train(epoch, network, criterion, optimizer, mse)
         print("Testing the model")
-        test(epoch, network, criterion, mse)
+        test(epoch, network, criterion, mse, name=name)
 
 wandb.init(project="FADML_Assignment_5",reinit=True)
 wandb.watch_called = False
@@ -195,13 +195,13 @@ run(clf,
 criterion=nn.CrossEntropyLoss(),
 optimizer=optim.SGD(clf.parameters(), lr=0.001, momentum=0.9), 
 mse=False, 
-epochs=50)
+epochs=50, name="clf")
 ## Plotting the Confusion Matrix
 cm_plot(clf)
 
 print("\nOptimizer: Adam, lr: 0.01, Momentum: 0.9 ,Loss: Cross Entropy\n")
-d=wandb.init(project="FADML_Assignment_5",reinit=True)
-wandb.watch_called = False
+#d=wandb.init(project="FADML_Assignment_5",reinit=True)
+#wandb.watch_called = False
 clf2 = model.convfc()
 clf2 = clf2.to(device)
 wandb.watch(clf2,log="all")
@@ -209,13 +209,13 @@ run(clf2,
 criterion=nn.CrossEntropyLoss(), 
 optimizer=optim.Adam(clf2.parameters(), lr=0.01), 
 mse=False, 
-epochs=50)
+epochs=50, name="clf2")
 ## Plotting the Confusion Matrix
 cm_plot(clf2)
 
 print("\nOptimizer: SGD, lr: 0.001, Loss: Cross Entropy\n")
-wandb.init(project="FADML_Assignment_5",reinit=True)
-wandb.watch_called = False
+#wandb.init(project="FADML_Assignment_5",reinit=True)
+#wandb.watch_called = False
 clf3 = model.convfc()
 clf3 = clf3.to(device)
 wandb.watch(clf3,log="all")
@@ -223,21 +223,21 @@ run(clf3,
 criterion=nn.MSELoss(), 
 optimizer=optim.SGD(clf3.parameters(), lr=0.001, momentum=0.9), 
 mse=False, 
-epochs=50)
+epochs=50,name="clf3")
 ## Plotting the Confusion Matrix
 cm_plot(clf3)
 
 print("\nOptimizer: Adam, lr: 0.01, Loss: Squared Error\n")
-wandb.init(project="FADML_Assignment_5",reinit=True)
-wandb.watch_called = False
+#wandb.init(project="FADML_Assignment_5",reinit=True)
+#wandb.watch_called = False
 clf4 = model.convfc()
 clf4 = clf4.to(device)
 wandb.watch(clf4,log="all")
 run(clf4, 
 criterion=nn.MSELoss(), 
-optimizer=optim.Adam(cl4.parameters(), lr=0.01), 
+optimizer=optim.Adam(clf4.parameters(), lr=0.01), 
 mse=False,
-epochs=50)
+epochs=50, name="clf4")
 ## Plotting the Confusion Matrix
 cm_plot(clf4)
 
