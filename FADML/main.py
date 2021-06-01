@@ -135,29 +135,31 @@ def test(epoch):
         wandb.log({"Epoch":epoch,"Test_images": test_images,"Test_Accuracy": 100. * correct / len(testloader.dataset),"Test_loss": test_loss})
 
 
-def confusion_matrix_plot(net):
-  all_correct = 0
-  all_images = 0
+def c_matrix_plot(net):
+  all_crt = 0
+  all_img = 0
   c_matrix = np.zeros([10,10], int)
   with torch.no_grad():
       for batch_id, (img, lbl) in enumerate(testloader):
-          images, labels = images.to(device), labels.to(device)
-          outputs = net(images)
-          _, pred = torch.max(outputs.data, 1)
-          all_images += labels.size(0)
-          total_correct += (predicted == labels).sum().item()
-          for i, l in enumerate(labels):
-              confusion_matrix[l.item(), predicted[i].item()] += 1 
+          img, lbl = img.to(device), lbl.to(device)
+          opt = net(img)
+          _, pred = torch.max(opt.data, 1)
+          all_img += lbl.size(0)
+          all_crt += (pred == lbl).float().sum()#.item()
+          for j, k in enumerate(lbl):
+              c_matrix[k.item(), pred[j].item()] += 1 
 
-  model_accuracy = total_correct / total_images * 100
-  print('Model accuracy on {0} test images: {1:.2f}%'.format(total_images, model_accuracy))
-  fig, ax = plt.subplots(1,1,figsize=(8,6))
-  sns.heatmap(confusion_matrix,annot = True,fmt='d', cmap="mako")
+  _acc = all_crt / all_img * 100
+  print('Model accuracy on {all_img} , test images: {1:.2f _acc}')
+  fig, ax = plt.subplots(1,1,figsize=(10,10))
+  sns.heatmap(c_matrix,annot = True,fmt='d', cmap="mako")
   plt.ylabel('Actual Category')
   plt.yticks(range(10), classes)
   plt.xlabel('Predicted Category')
   plt.xticks(range(10), classes)
   plt.show()
+
+
 for epoch in range(0,500):
     print("Training")
     train(epoch)
@@ -180,3 +182,4 @@ early_stopping_round = 10
     data.to_csv(r'losstest.txt', header=None, index=None, sep=' ', mode='a')
     accuracy_df = pd.DataFrame.from_dict(testaccuracy)
     accuracy_df.to_csv(r'test_accuracy.txt', header=None, index=None, sep=' ', mode='a')
+
