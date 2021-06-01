@@ -27,7 +27,9 @@ class Net(nn.Module):
         )
         self.linear_layers = Sequential(
             Linear(6*5*5, 120),
+            ReLU(inplace=True),
             Linear(120, 84),
+            ReLU(inplace=True),
             Linear(84, 10)
             )
 
