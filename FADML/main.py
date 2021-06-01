@@ -9,9 +9,13 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
-
+import numpy as np
 import torchvision
 import torchvision.transforms as transforms
+import wandb
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 import os
 import argparse
@@ -24,7 +28,7 @@ best_acc = 0  # best test accuracy
 training_loss = dict()
 test_losses = dict()
 test_accuracy = dict()
-
+training_loss_history = []
 ## Load the DataSet
 
 print('Data transformation')
@@ -56,14 +60,10 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 #Model
 print('Model creation')
 
-net = model.convfc()
-
-net = net.to(device)
-
 # Training the model........
-def train(epoch, net, criterion, optimizer, mse):
+def train(epoch, network, criterion, optimizer, mse):
     print('\nEpoch: %d' % epoch)
-    net.train()
+    network.train()
     
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
@@ -72,7 +72,7 @@ def train(epoch, net, criterion, optimizer, mse):
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
-        outputs = net(inputs).to(device)
+        outputs = network(inputs).to(device)
         ## Loss Computation
         if mse:
             target_encoded = torch.nn.functional.one_hot(targets, 10).float()
@@ -83,59 +83,55 @@ def train(epoch, net, criterion, optimizer, mse):
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
-
-
-    #Write training losses to losstrain.txt for each epoch
-    global training_loss
+    global training_loss, training_loss_history
     training_loss[epoch] = train_loss
-
+    training_loss_history.append(train_loss)
     print(f'Training Loss: {train_loss}')
     wandb.log({"Epoch":epoch," Training Loss": train_loss})
 
  
-def test(epoch, net, criterion, mse):
+def test(epoch, network, criterion, mse):
     global best_acc
-    net.eval()
-    test_images = []
+    network.eval()
+    #test_images = []
     test_loss = 0.0
     correct = 0
-    model_accuracy = 0.0
+    model_acc = 0.0
+    count = 0
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net(inputs)
-
+            outputs = network(inputs).to(device)
             if mse:
                 target_encoded = torch.nn.functional.one_hot(targets, 10).float()
                 loss= criterion(outputs, target_encoded)
             else:
                 loss= criterion(outputs, targets)
-
             #Predicting on the input data
             _, pred = torch.max(outputs.data, 1)
             ## Loss calculation
             test_loss += loss.item()
-            correct += (pred == targets).float().sum()#.item()
-            test_images.append(wandb.Image(inputs[0], caption=f"Pred: {pred[0].item()} Truth: {targets[0]}")
-
-            ## Accurcay of the model
-        model_accuracy = 100 * correct / output.shape[0]
-        if model_accuracy > best_acc:
+            correct += (pred==targets).sum().item()
+            count += targets.size(0)
+            #test_images.append(wandb.Image(inputs[0], caption=f"Pred: {pred[0].item()} Truth: {targets[0]}"))
+        model_acc = (correct/count ) * 100            ## Accurcay of the model
+        if model_acc > best_acc:
             #Saving the new value of best_accuracy
-            best_acc = model_accuracy
+            best_acc = model_acc
             # Save checkpoint for the model which yields best accuracy
-            PATH = f'./best_model{epoch}.pth'
-            torch.save(net.state_dict(), PATH)
+            PATH = f'./best_model_updated.pth'
+            torch.save(network.state_dict(), PATH)
     # Write test set losses to losstest.txt for each epoch
         global test_losses
         test_losses[epoch] = test_loss
     #Write test set accuracies to acctest.txt for each epoch
         global test_accurcay
-        test_accuracy[epoch] = model_accuracy
+        test_accuracy[epoch] = model_acc
         # Printing the results
         print(f'Testing Loss: {test_loss}')
-        print(f'Testing Accuracy: {model_accuracy}')
-        wandb.log({"Epoch":epoch,"Test_images": test_images,"Test_Accuracy": 100. * correct / len(testloader.dataset),"Test_loss": test_loss})
+        print(f'Testing Accuracy: {model_acc}')
+        wandb.log({"Epoch":epoch,#"Test_images": test_images,
+        "Test_Accuracy": model_acc,"Test_loss": test_loss})
 
 
 def cm_plot(net):
@@ -153,9 +149,9 @@ def cm_plot(net):
               c_matrix[k.item(), pred[j].item()] += 1 
 
   _acc = all_crt / all_img * 100
-  print('Model accuracy on {all_img} , test images: {1:.2f _acc}')
+  print(f'Model accuracy on {all_img} , test images: {1:.2f _acc}')
   fig, ax = plt.subplots(1,1,figsize=(10,10))
-  sns.heatmap(c_matrix,annot = True,fmt='d', cmap="mako")
+  sns.heatmap(c_matrix,annot = True,fmt='d',linewidths=.5)
   plt.ylabel('Actual Category')
   plt.yticks(range(10), classes)
   plt.xlabel('Predicted Category')
@@ -166,66 +162,93 @@ def cm_plot(net):
 def run(network, criterion, optimizer, mse, epochs):
     for epoch in range(epochs):
         print("Training the model")
-        train(epoch, net, criterion, optimizer, mse)
+        train(epoch, network, criterion, optimizer, mse)
         print("Testing the model")
-        test(epoch, net, criterion, mse)
+        test(epoch, network, criterion, mse)
 
-if __name__ == "__main__":
-    wandb.init(project="FADML_Assignment_5",reinit=True)
-    wandb.watch_called = False
-    clf = convfc()
-    clf = clf.to(device)
-    wandb.watch(clf,log="all")
-    print("Running the model")
-    print("\nOptimizer: SGD, lr: 0.001, Momentum: 0.9, Loss: Cross Entropy\n")
-    run(clf, 
-    criterion=nn.CrossEntropyLoss(), 
-    optimizer=optim.SGD(clf.parameters(), lr=0.001, momentum=0.9), 
-    mse=False, 
-    epochs=50)
-    ## Plotting the Confusion Matrix
-    cm_plot(clf)
+wandb.init(project="FADML_Assignment_5",reinit=True)
+wandb.watch_called = False
+clf = model.convfc()
+clf = clf.to(device)
+wandb.watch(clf,log="all")
+print("Running the model")
+print("\nOptimizer: SGD, lr: 0.001, Momentum: 0.9, Loss: Cross Entropy\n")
+run(clf, 
+criterion=nn.CrossEntropyLoss(),
+optimizer=optim.SGD(clf.parameters(), lr=0.001, momentum=0.9), 
+mse=False, 
+epochs=50)
+## Plotting the Confusion Matrix
+cm_plot(clf)
 
-    print("\nOptimizer: Adam, lr: 0.01, Momentum: 0.9 ,Loss: Cross Entropy\n")
-    clf2 = convfc()
-    clf2 = clf2.to(device)
-    wandb.watch(clf2,log="all")
-    run(clf2, 
-    criterion=nn.CrossEntropyLoss(), 
-    optimizer=optim.Adam(clf2.parameters(), lr=0.01), 
-    mse=False, 
-    epochs=50)
-    ## Plotting the Confusion Matrix
-    cm_plot(clf2)
+print("\nOptimizer: Adam, lr: 0.01, Momentum: 0.9 ,Loss: Cross Entropy\n")
+d=wandb.init(project="FADML_Assignment_5",reinit=True)
+wandb.watch_called = False
+clf2 = model.convfc()
+clf2 = clf2.to(device)
+wandb.watch(clf2,log="all")
+run(clf2, 
+criterion=nn.CrossEntropyLoss(), 
+optimizer=optim.Adam(clf2.parameters(), lr=0.01), 
+mse=False, 
+epochs=50)
+## Plotting the Confusion Matrix
+cm_plot(clf2)
 
-    print("\nOptimizer: SGD, lr: 0.001, Loss: Cross Entropy\n")
-    clf3 = convfc()
-    clf3 = clf3.to(device)
-    wandb.watch(clf3,log="all")
-    run(clf3, 
-    criterion=nn.MSELoss(), 
-    optimizer=optim.SGD(clf3.parameters(), lr=0.001, momentum=0.9), 
-    mse=False, 
-    epochs=50)
-    ## Plotting the Confusion Matrix
-    cm_plot(clf3)
+print("\nOptimizer: SGD, lr: 0.001, Loss: Cross Entropy\n")
+wandb.init(project="FADML_Assignment_5",reinit=True)
+wandb.watch_called = False
+clf3 = model.convfc()
+clf3 = clf3.to(device)
+wandb.watch(clf3,log="all")
+run(clf3, 
+criterion=nn.MSELoss(), 
+optimizer=optim.SGD(clf3.parameters(), lr=0.001, momentum=0.9), 
+mse=False, 
+epochs=50)
+## Plotting the Confusion Matrix
+cm_plot(clf3)
 
-    print("\nOptimizer: Adam, lr: 0.01, Loss: Squared Error\n")
-    clf4 = convfc()
-    clf4 = clf4.to(device)
-    wandb.watch(clf4,log="all")
-    run(clf4, 
-    criterion=nn.MSELoss(), 
-    optimizer=optim.Adam(cl4.parameters(), lr=0.01), 
-    mse=False, 
-    epochs=50)
-    ## Plotting the Confusion Matrix
-    cm_plot(clf4)
+print("\nOptimizer: Adam, lr: 0.01, Loss: Squared Error\n")
+wandb.init(project="FADML_Assignment_5",reinit=True)
+wandb.watch_called = False
+clf4 = model.convfc()
+clf4 = clf4.to(device)
+wandb.watch(clf4,log="all")
+run(clf4, 
+criterion=nn.MSELoss(), 
+optimizer=optim.Adam(cl4.parameters(), lr=0.01), 
+mse=False,
+epochs=50)
+## Plotting the Confusion Matrix
+cm_plot(clf4)
 
-    train_loss_df = pd.DataFrame.from_dict(training_loss)
-    train_loss_df.to_csv(r'train_loss.txt', header=None, index=None, sep=' ', mode='a')
-    test_loss_df = pd.DataFrame.from_dict(test_losses)
-    test_loss_df.to_csv(r'test_loss.txt', header=None, index=None, sep=' ', mode='a')
-    accuracy_df = pd.DataFrame.from_dict(test_accuracy)
-    accuracy_df.to_csv(r'test_accuracy.txt', header=None, index=None, sep=' ', mode='a')
-    
+
+train_loss_df = pd.DataFrame.from_dict(training_loss)
+train_loss_df.to_csv(r'train_loss.txt', header=None, index=None, sep=' ', mode='a')
+test_loss_df = pd.DataFrame.from_dict(test_losses)
+test_loss_df.to_csv(r'test_loss.txt', header=None, index=None, sep=' ', mode='a')
+accuracy_df = pd.DataFrame.from_dict(test_accuracy)
+accuracy_df.to_csv(r'test_accuracy.txt', header=None, index=None, sep=' ', mode='a')
+'''
+## Defining a resnet model
+resnet = models.resnet34(pretrained=True)
+resnet.fc = nn.Linear(512, 256)
+resnet.fc1 = nn.Linear(256,128)
+resnet.fc2 = nn.Linear(128,10)
+wandb.init(project="CIFAR_Sudarshan_project_updated",reinit=True)
+wandb.watch_called = False
+wandb.watch(resnet,log="all")
+
+# run=wandb.init(project="FADML_Assignment_5_resnet",reinit=True)
+# wandb.watch_called = False # Re-run the model w
+resnet = resnet.to(device)
+# wandb.watch(resnet,log="all")
+training_loss_history = []
+# val_running_loss_history = []
+### Defining a Loss function and optimizer for configuration 2
+mse = False
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(resnet.parameters(), lr=0.01, momentum=0.9)
+training_testing(resnet,criterion,optimizer,mse)
+'''

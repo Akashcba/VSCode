@@ -1,6 +1,7 @@
 from __future__ import print_function
 import argparse
 import torch
+import torch.nn as nn
 from torch.nn import Linear, ReLU, Sequential, Conv2d, MaxPool2d
 import torch.nn.functional as F
 import torch.optim as optim
@@ -25,8 +26,8 @@ class Net(nn.Module):
             MaxPool2d(2,2)
         )
         self.linear_layers = Sequential(
-            Linear(6*5*5, 120)
-            Linear(120, 84)
+            Linear(6*5*5, 120),
+            Linear(120, 84),
             Linear(84, 10)
             )
 
