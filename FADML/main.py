@@ -1,4 +1,4 @@
-# FADML Assignment
+# FADML Assignment 5
 '''
 @Author : Akash Choudhary
 20BM6JP46
@@ -222,10 +222,10 @@ if __name__ == "__main__":
     ## Plotting the Confusion Matrix
     cm_plot(clf4)
 
-    loss_df = pd.DataFrame.from_dict(training_loss)
-    loss_df.to_csv(r'losstrain.txt', header=None, index=None, sep=' ', mode='a')
-    data = pd.DataFrame.from_dict(df)
-    data.to_csv(r'losstest.txt', header=None, index=None, sep=' ', mode='a')
-    accuracy_df = pd.DataFrame.from_dict(testaccuracy)
+    train_loss_df = pd.DataFrame.from_dict(training_loss)
+    train_loss_df.to_csv(r'train_loss.txt', header=None, index=None, sep=' ', mode='a')
+    test_loss_df = pd.DataFrame.from_dict(test_losses)
+    test_loss_df.to_csv(r'test_loss.txt', header=None, index=None, sep=' ', mode='a')
+    accuracy_df = pd.DataFrame.from_dict(test_accuracy)
     accuracy_df.to_csv(r'test_accuracy.txt', header=None, index=None, sep=' ', mode='a')
-    run=wandb.init(project="CIFAR_Sudarshan_project_updated",reinit=True)
+    
