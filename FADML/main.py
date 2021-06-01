@@ -21,6 +21,10 @@ import model
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 best_acc = 0  # best test accuracy
+training_loss = dict()
+test_losses = dict()
+test_accuracy = dict()
+
 ## Load the DataSet
 
 print('Data transformation')
@@ -57,7 +61,7 @@ net = model.convfc()
 net = net.to(device)
 
 # Training the model........
-def train(epoch):
+def train(epoch, net, criterion, optimizer, mse):
     print('\nEpoch: %d' % epoch)
     net.train()
     
@@ -80,7 +84,6 @@ def train(epoch):
         optimizer.step()
         train_loss += loss.item()
 
-    training_loss_history.append(train_loss)
 
     #Write training losses to losstrain.txt for each epoch
     global training_loss
@@ -90,7 +93,7 @@ def train(epoch):
     wandb.log({"Epoch":epoch," Training Loss": train_loss})
 
  
-def test(epoch):
+def test(epoch, net, criterion, mse):
     global best_acc
     net.eval()
     test_images = []
@@ -135,7 +138,7 @@ def test(epoch):
         wandb.log({"Epoch":epoch,"Test_images": test_images,"Test_Accuracy": 100. * correct / len(testloader.dataset),"Test_loss": test_loss})
 
 
-def c_matrix_plot(net):
+def cm_plot(net):
   all_crt = 0
   all_img = 0
   c_matrix = np.zeros([10,10], int)
@@ -160,21 +163,64 @@ def c_matrix_plot(net):
   plt.show()
 
 
-for epoch in range(0,500):
-    print("Training")
-    train(epoch)
-    print("Testing")
-    test(epoch)
+def run(network, criterion, optimizer, mse, epochs):
+    for epoch in range(epochs):
+        print("Training the model")
+        train(epoch, net, criterion, optimizer, mse)
+        print("Testing the model")
+        test(epoch, net, criterion, mse)
 
 if __name__ == "__main__":
+    wandb.init(project="FADML_Assignment_5",reinit=True)
+    wandb.watch_called = False
+    clf = convfc()
+    clf = clf.to(device)
+    wandb.watch(clf,log="all")
+    print("Running the model")
+    print("\nOptimizer: SGD, lr: 0.001, Momentum: 0.9, Loss: Cross Entropy\n")
+    run(clf, 
+    criterion=nn.CrossEntropyLoss(), 
+    optimizer=optim.SGD(clf.parameters(), lr=0.001, momentum=0.9), 
+    mse=False, 
+    epochs=50)
+    ## Plotting the Confusion Matrix
+    cm_plot(clf)
 
-early_stopping_round = 10
-  epoch_counter = 0
-  for epoch in range(0,50):
-    print("Model Training")
-    train(epoch,net,criterion,optimizer,mse)
-    print("\n Model Testing")
-    test(epoch,net,criterion,mse)
+    print("\nOptimizer: Adam, lr: 0.01, Momentum: 0.9 ,Loss: Cross Entropy\n")
+    clf2 = convfc()
+    clf2 = clf2.to(device)
+    wandb.watch(clf2,log="all")
+    run(clf2, 
+    criterion=nn.CrossEntropyLoss(), 
+    optimizer=optim.Adam(clf2.parameters(), lr=0.01), 
+    mse=False, 
+    epochs=50)
+    ## Plotting the Confusion Matrix
+    cm_plot(clf2)
+
+    print("\nOptimizer: SGD, lr: 0.001, Loss: Cross Entropy\n")
+    clf3 = convfc()
+    clf3 = clf3.to(device)
+    wandb.watch(clf3,log="all")
+    run(clf3, 
+    criterion=nn.MSELoss(), 
+    optimizer=optim.SGD(clf3.parameters(), lr=0.001, momentum=0.9), 
+    mse=False, 
+    epochs=50)
+    ## Plotting the Confusion Matrix
+    cm_plot(clf3)
+
+    print("\nOptimizer: Adam, lr: 0.01, Loss: Squared Error\n")
+    clf4 = convfc()
+    clf4 = clf4.to(device)
+    wandb.watch(clf4,log="all")
+    run(clf4, 
+    criterion=nn.MSELoss(), 
+    optimizer=optim.Adam(cl4.parameters(), lr=0.01), 
+    mse=False, 
+    epochs=50)
+    ## Plotting the Confusion Matrix
+    cm_plot(clf4)
 
     loss_df = pd.DataFrame.from_dict(training_loss)
     loss_df.to_csv(r'losstrain.txt', header=None, index=None, sep=' ', mode='a')
@@ -182,4 +228,4 @@ early_stopping_round = 10
     data.to_csv(r'losstest.txt', header=None, index=None, sep=' ', mode='a')
     accuracy_df = pd.DataFrame.from_dict(testaccuracy)
     accuracy_df.to_csv(r'test_accuracy.txt', header=None, index=None, sep=' ', mode='a')
-
+    run=wandb.init(project="CIFAR_Sudarshan_project_updated",reinit=True)
