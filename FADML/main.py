@@ -200,8 +200,8 @@ epochs=50)
 cm_plot(clf)
 
 print("\nOptimizer: Adam, lr: 0.01, Momentum: 0.9 ,Loss: Cross Entropy\n")
-d=wandb.init(project="FADML_Assignment_5",reinit=True)
-wandb.watch_called = False
+#d=wandb.init(project="FADML_Assignment_5",reinit=True)
+#wandb.watch_called = False
 clf2 = model.convfc()
 clf2 = clf2.to(device)
 wandb.watch(clf2,log="all")
@@ -214,8 +214,8 @@ epochs=50)
 cm_plot(clf2)
 
 print("\nOptimizer: SGD, lr: 0.001, Loss: Cross Entropy\n")
-wandb.init(project="FADML_Assignment_5",reinit=True)
-wandb.watch_called = False
+#wandb.init(project="FADML_Assignment_5",reinit=True)
+#wandb.watch_called = False
 clf3 = model.convfc()
 clf3 = clf3.to(device)
 wandb.watch(clf3,log="all")
@@ -228,8 +228,8 @@ epochs=50)
 cm_plot(clf3)
 
 print("\nOptimizer: Adam, lr: 0.01, Loss: Squared Error\n")
-wandb.init(project="FADML_Assignment_5",reinit=True)
-wandb.watch_called = False
+#wandb.init(project="FADML_Assignment_5",reinit=True)
+#wandb.watch_called = False
 clf4 = model.convfc()
 clf4 = clf4.to(device)
 wandb.watch(clf4,log="all")
