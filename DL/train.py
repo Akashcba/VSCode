@@ -17,7 +17,7 @@ import models
 ### Training files .......
 
 hindi = []; english = []
-with open('/data/IITB.en-hi_source.en', 'r') as eng, open('/data/IITB.en-hi_target.hi', 'r')as hind:
+with open('/content/IITB.en-hi_source.en', 'r') as eng, open('/content/IITB.en-hi_target.hi', 'r')as hind:
   i = 0
   try:
       for en, hi in zip(eng, hind):
@@ -62,9 +62,9 @@ dataset = utils.parallelData(eng_voc, hin_voc)
 model = models.Model(
     eng_voc.vocab_size,
     hin_voc.vocab_size,
-    embedding_size = 256
-    hidden_size = 256
-    layers = 1
+    embedding_size = 256,
+    hidden_size = 256,
+    layers = 1,
     bidirection = True)
 
 loader = DataLoader(dataset, batch_size=100, shuffle=True)

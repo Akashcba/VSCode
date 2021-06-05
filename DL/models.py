@@ -132,8 +132,8 @@ class Attnseq2seq(nn.Module):
     return output  #shape[seq_len, batch_size, vocab_size]
 
 def Model(
-    eng_voc.vocab_size,
-    hin_voc.vocab_size,
+    eng_vocab_size,
+    hin_vocab_size,
     embedding_size, 
     hidden_size,
     layers, 

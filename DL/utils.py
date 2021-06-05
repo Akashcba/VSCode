@@ -7,6 +7,8 @@ import pandas as pd
 import re
 from tqdm import trange, tqdm
 
+from torch.utils.data import Dataset
+
 ## Utility functions for the model
 ### Data Cleaning
 def cleanEng(x):
