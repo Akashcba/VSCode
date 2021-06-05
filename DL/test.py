@@ -63,7 +63,7 @@ print(test_df.head())
 test_df.to_csv("test_converted.csv",index=False)
 
 ## Predict function
-def prediction(x):
+def predict(x):
     for idx in x:
       if idx == 0:
         break
@@ -90,8 +90,7 @@ def translate(input):
 
           if x == 2:
             break
-
-      return response
+        return response
 
 def get(sentence):
   toks = []
@@ -102,7 +101,7 @@ def get(sentence):
       toks.append(eng_voc.word2idx[word])
 
   sentence = torch.tensor(toks).float()
-  res = prediction(sentence)
+  res = predict(sentence)
   return res
 
 input_list = []
