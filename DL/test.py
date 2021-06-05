@@ -9,6 +9,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import random
+import pandas as pd
+import numpy as np
 
 import models
 
@@ -24,5 +26,7 @@ model = models.Model(
 model.load_state_dict(torch.load('/content/VSCode/DL/model_95k.pt'))
 model.eval()
 
-### Load the Test File .....
+### Loading the reduced dataset for builind the vocabulory
+data = pd.read_csv("")
 
+### Load the Test File .....

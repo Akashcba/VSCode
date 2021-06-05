@@ -35,6 +35,10 @@ print(data.head(10))
 
 ## Reducing the dataset
 data = data.iloc[:95000, ]
+
+#  Saving the reduced dataset
+data.to_csv("Reduced_Dataset.csv",index=False)
+
 print(data.shape)
 print(data.head(20))
 ## Clean the dataset
@@ -55,6 +59,10 @@ print(data.head())
 ### Storing the vocab
 eng_voc = utils.vocab(data.iloc[:,0],token=False)
 hin_voc = utils.vocab(data.iloc[:, 1],token=True)
+#eng_voc.to_csv("English_vocab.csv", index=False)
+#hin_voc.to_csv("Hindi_vocab.csv", index=False)
+print("eng vocab\n")
+print(eng_voc.x)
 print("eng_voc size: ", eng_voc.vocab_size)
 print("hin_voc size: ", hin_voc.vocab_size)
 
