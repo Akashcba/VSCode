@@ -31,7 +31,7 @@ model.eval()
 ### Loading the reduced dataset for builind the vocabulory
 data = pd.read_csv("/content/VSCode/DL/Reduced_Dataset.csv")
 English_vocab = utils.vocab(data['source'],token=False)
-Hindi_vocab = utils.vocab(data['source'],token=True)
+Hindi_vocab = utils.vocab(data['hindi'],token=True)
 
 ### Load the Test File .....
 source = []
