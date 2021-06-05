@@ -36,7 +36,7 @@ source = []
 with open('/content/VSCode/DL/test.en', 'r') as eng:
   i = 0
   try:
-      for en eng :
+      for en in eng :
         source.append(en)
         print(f"Line Number : {i}",end="\r")
         i+=1
