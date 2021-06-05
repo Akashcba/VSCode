@@ -17,7 +17,7 @@ import models
 ### Training files .......
 
 hindi = []; english = []
-with open('/content/drive/MyDrive/PRoj/IITB.en-hi_source.en', 'r') as eng, open('/content/drive/MyDrive/PRoj/IITB.en-hi_target.hi', 'r')as hind:
+with open('/data/IITB.en-hi_source.en', 'r') as eng, open('/data/IITB.en-hi_target.hi', 'r')as hind:
   i = 0
   try:
       for en, hi in zip(eng, hind):
