@@ -5,9 +5,10 @@
 
 import pandas as pd
 import numpy as np
-import re
 from tqdm.notebook import tqdm
 #from torch.utils.data import DataLoader
+import torch
+import random
 
 import utils
 import models
@@ -15,30 +16,32 @@ import models
 ## Input training data needed for building the vocabulory
 data = pd.read_csv("/content/VSCode/DL/Reduced_Dataset.csv")
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 ## Data Preprocessing
-data.iloc[:,0] = df['source'].apply(func=utils.cleanerEng)
-data.iloc[:,1] = df['hindi'].apply(func= utils.cleanerHindi)
-data.iloc[:,0] = df['source'].apply(func= lambda x : (str(x).split()))
-data.iloc[:,1] = df['Hin'].apply(func= lambda x : (str(x).split()))
+data.iloc[:,0] = data['source'].apply(func=utils.cleanerEng)
+data.iloc[:,1] = data['hindi'].apply(func= utils.cleanerHindi)
+data.iloc[:,0] = data['source'].apply(func= lambda x : (str(x).split()))
+data.iloc[:,1] = data['hindi'].apply(func= lambda x : (str(x).split()))
 
 ## Tokenize the data
-data.iloc[:,0] = df['source'].apply(func= utils.addTokens,start=False)
-data.iloc[:,1] = df['hindi'].apply(func= utils.addTokens,start=True)
+data.iloc[:,0] = data['source'].apply(func= utils.addTokens,start=False)
+data.iloc[:,1] = data['hindi'].apply(func= utils.addTokens,start=True)
 
 
-data = data.values
+data = data.iloc[:50000, ].values
 
-print(data[:,1].shape)
+#print(data[:,1].shape)
 
-English_vocab = vocab(data[:,0],token=False)
-Hindi_vocab = vocab(data[:,1],token=True)
+English_vocab = utils.vocab(data[:,0],token=False)
+Hindi_vocab = utils.vocab(data[:,1],token=True)
 
 for idx in Hindi_vocab.x[5]:
   print(Hindi_vocab.idx2word[int(idx)],end=' ')
 
 ## Modeling
 model = models.Model()
-model.load_state_dict(torch.load('data/model50k.pt'))
+model.load_state_dict(torch.load('/content/VSCode/DL/data/model50thousand.pt'))
 ## Loaded MOdel
 print(model.eval())
 
@@ -58,7 +61,7 @@ df_test.iloc[:,0] = df_test['source'].apply(func= utils.addTokens,start=False)
 print(df_test.head())
 
 tdata = df_test.values
-test_dataset = vocab(tdata[:,0],token=False)
+test_dataset = utils.vocab(tdata[:,0],token=False)
 
 ## Prediction
 
@@ -113,12 +116,23 @@ def get(sent):
   # print(res)
   return res
 
-for i in range(0,10):
-  j=random.randint(0,100)
-  print('Example '+str(i))
-  print('English Sentence:')
-  print(tdata[j,0][:-1])
+
+input_list = [ ]
+model_output = [ ]
+
+#for j in trange(int(tdata.shape[0])):
+for j in tqdm(range(int(tdata.shape[0]/2))):
+  try:
+    res = get(tdata[j,0])[:-1]
+  except Exception as e:
+    continue
   print('English Sentence converted and Predicted Hindi Sentence:')
-  res = get(tdata[j,0])[:-1]
+  #print(tdata[j,0][:-1])
   print(res)
-  i=i+1
+'''
+i=i+1
+
+print("Source\t", "Output\n")
+for en,hi in zip(input_list, model_output):
+    print(en, hi)
+'''

@@ -6,6 +6,8 @@ import torch.optim as optim
 
 import random
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 class encoder(nn.Module):
 
   def __init__(self, input_size, embedding_size, hidden_size, layers, bidirectional):
