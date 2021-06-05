@@ -11,7 +11,9 @@ from torch.utils.data import Dataset, DataLoader
 import random
 import pandas as pd
 import numpy as np
+from tqdm.notebook import tqdm
 
+import utils
 import models
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -28,8 +30,8 @@ model.eval()
 
 ### Loading the reduced dataset for builind the vocabulory
 data = pd.read_csv("/content/VSCode/DL/Reduced_Dataset.csv")
-eng_voc = utils.vocab(data.iloc[:,0],token=False)
-hin_voc = utils.vocab(data.iloc[:, 1],token=True)
+English_vocab = utils.vocab(data['source'],token=False)
+Hindi_vocab = utils.vocab(data['source'],token=True)
 
 ### Load the Test File .....
 source = []
@@ -48,13 +50,13 @@ del source
 print(test_df.head(10))
 
 ### Cleaning the Input test data ...
-test_df = test_df['source'].apply(func=utils.cleanEng)
+test_df['source'] = test_df['source'].apply(func=utils.cleanEng)
 
 # Break Sentences into a list
 test_df['source'] = test_df['source'].apply(func= lambda x : (str(x).split()))
 
 ### Add Start and ENd Tokens
-test_df = test_df['source'].apply(func=utils.addToken)
+test_df['source'] = test_df['source'].apply(func=utils.addToken)
 
 print("\nData Head :\n")
 print(test_df.head())
@@ -63,14 +65,12 @@ print(test_df.head())
 test_df.to_csv("test_converted.csv",index=False)
 
 ## Predict function
-def predict(x):
+def prediction(x):
     for idx in x:
       if idx == 0:
         break
-      print(eng_voc.idx2word[int(idx)],end=' ')
-    
+      print(English_vocab.idx2word[int(idx)],end=' ')
     print()
-
     x = x.long().reshape(1,-1).to(device)
     ans = translate(x)
     res = []
@@ -79,36 +79,43 @@ def predict(x):
     return res
 
 def translate(input):
-    with torch.no_grad():
-        response = []
+      #input = batch of english sentences[batch, sentece(padded)]
+      with torch.no_grad():
+        guess = []
         encoder_states, hidden, cell = model.encoder(input)
+        # x = torch.ones((1)).float().to(device) # <START> token
         x = torch.ones((1)).long().to(device)
         while True:
           out, hidden, cell = model.decoder(x, hidden, cell, encoder_states) #out shape = [batch, vocab_size]
-          x = out.argmax(1)
-          response.append(int(x[0].detach().cpu()))
-
+          x = out.argmax(1)# taking the word with max value(confidence)  shape = [batch of words]
+          guess.append(int(x[0].detach().cpu()))
           if x == 2:
             break
-        return response
+      return guess
 
-def get(sentence):
+def get(sent):
+  # sentence = sentence.lower()
+  # sent = sentence.split()
+  # sent.append('<END>')
+  # print(sent)
   toks = []
-  for word in sentence:
-    if eng_voc.word2idx.get(word) is None:
-      toks.append(eng_voc.word2idx['the'])
-    else:
-      toks.append(eng_voc.word2idx[word])
+  for word in sent:
+    if English_vocab.word2idx.get(word) is None:
+        toks.append(English_vocab.word2idx['the'])
+    else :
+        toks.append(English_vocab.word2idx[word])
+    print(toks)
+    sent = torch.tensor(toks).float()
+    res = prediction(sent)
+# print(res)
+    return res
 
-  sentence = torch.tensor(toks).float()
-  res = predict(sentence)
-  return res
-
-input_list = []
-model_output = []
-for i in tqdm(range(int(test_df.shape[0]/2))):
-  input_list.append(test_df[i,0][:-1])
-  model_output.append((get(test_df[i,0])[:-1]))
+tdata = test_df['source'].values
+input_list = [ ]
+model_output = [ ]
+for i in tqdm(range(int(tdata.shape[0]/2))):
+  input_list.append(tdata[i][:-1])
+  model_output.append((get(tdata[i])[:-1]))
 
 print("Source\t", "Output\n")
 for en,hi in zip(input_list, model_output):
