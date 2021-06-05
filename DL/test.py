@@ -106,7 +106,7 @@ def get(sentence):
 
 input_list = []
 model_output = []
-for i in tqdm(range(int(.shape[0]/2))):
+for i in tqdm(range(int(test_df.shape[0]/2))):
   input_list.append(test_df[i,0][:-1])
   model_output.append((get(test_df[i,0])[:-1]))
 
