@@ -67,15 +67,15 @@ test_df.to_csv("test_converted.csv",index=False)
 ## Predict function
 def prediction(x):
     for idx in x:
-      if idx == 0:
-        break
-      print(English_vocab.idx2word[int(idx)],end=' ')
+        if idx == 0:
+            break
+        print(English_vocab.idx2word[int(idx)],end=' ')
     print()
     x = x.long().reshape(1,-1).to(device)
     ans = translate(x)
     res = []
     for id in ans:
-      res.append(Hindi_vocab.idx2word[id])
+        res.append(Hindi_vocab.idx2word.get(id))
     return res
 
 def translate(input):
@@ -101,19 +101,19 @@ def get(sent):
   toks = []
   for word in sent:
     if English_vocab.word2idx.get(word) is None:
-        toks.append(English_vocab.word2idx['the'])
-    else :
-        toks.append(English_vocab.word2idx[word])
-    print(toks)
-    sent = torch.tensor(toks).float()
-    res = prediction(sent)
-# print(res)
-    return res
+      toks.append(English_vocab.word2idx['the'])            # the words which are not there in the vocabulary are added with 'the' padding
+    else:
+      toks.append(English_vocab.word2idx[word])
+  # print(toks)
+  sent = torch.tensor(toks).float()
+  res = prediction(sent)
+  # print(res)
+  return res
 
-tdata = test_df['source'].values
+tdata = test_df['source'].tolist()
 input_list = [ ]
 model_output = [ ]
-for i in tqdm(range(int(tdata.shape[0]/2))):
+for i in tqdm(range(len(tdata))):
   input_list.append(tdata[i][:-1])
   model_output.append((get(tdata[i])[:-1]))
 
