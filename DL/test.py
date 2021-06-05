@@ -21,5 +21,8 @@ model = models.Model(
     hidden_size = 256,
     layers = 1,
     bidirection = True)
-model.load_state_dict(torch.load())
+model.load_state_dict(torch.load('/content/VSCode/DL/model_95k.pt'))
 model.eval()
+
+### Load the Test File .....
+
