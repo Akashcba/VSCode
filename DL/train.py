@@ -53,8 +53,10 @@ print("\nData Head :\n")
 print(data.head())
 
 ### Storing the vocab
-eng_voc = utils.vocab(data[:,0],token=False)
-hin_voc = utils.vocab(data[:,1],token=True)
+eng_voc = utils.vocab(data.iloc[:,0],token=False)
+hin_voc = utils.vocab(data.iloc[:, 1],token=True)
+print("eng_voc size: ", eng_voc.vocab_size)
+print("hin_voc size: ", hin_voc.vocab_size)
 
 dataset = utils.parallelData(eng_voc, hin_voc)
 
@@ -66,15 +68,15 @@ model = models.Model(
     hidden_size = 256,
     layers = 1,
     bidirection = True)
-
+learning_rate = 0.0006
 loader = DataLoader(dataset, batch_size=100, shuffle=True)
 it = iter(loader)
 x,y = next(it)
 print(x.shape,y.shape)
-
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 optimizer = optim.Adam(model.parameters(),lr=learning_rate)
 criterion = nn.CrossEntropyLoss(ignore_index=0)
-
+epochs = 50
 train_loss = []
 for epoch in trange(epochs):
   for id,(x,y) in (enumerate(tqdm(loader))):

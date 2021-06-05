@@ -7,9 +7,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+import random
 
 #Model preparation
-
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+hin_vocab_size = 9840
+eng_vocab_size = 5763
 class encoder(nn.Module):
 
   def __init__(self, input_size, embedding_size, hidden_size, layers, bidirectional):
@@ -111,7 +114,7 @@ class Attnseq2seq(nn.Module):
     '''
     batch_size = input.shape[0]
     seq_len = target.shape[1]
-    hindi_vocab_size = hin_voc.vocab_size
+    hindi_vocab_size = hin_vocab_size
 
     output = torch.zeros((seq_len, batch_size, hindi_vocab_size)).to(device)
 
@@ -136,9 +139,9 @@ def Model(
     hin_vocab_size,
     embedding_size, 
     hidden_size,
-    layers, 
+    layers,
     bidirection):
-    ENC = encoder(eng_voc.vocab_size, embedding_size, hidden_size, layers, bidirection).to(device)
-    DE = AttnDecoder(hin_voc.vocab_size, embedding_size, hidden_size, layers).to(device)
+    ENC = encoder(eng_vocab_size, embedding_size, hidden_size, layers, bidirection).to(device)
+    DE = AttnDecoder(hin_vocab_size, embedding_size, hidden_size, layers).to(device)
     model = Attnseq2seq(ENC,DE).to(device)
     return model

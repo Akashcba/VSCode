@@ -7,6 +7,7 @@ import pandas as pd
 import re
 from tqdm import trange, tqdm
 
+import torch
 from torch.utils.data import Dataset
 
 ## Utility functions for the model
