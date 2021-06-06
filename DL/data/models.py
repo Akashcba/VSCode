@@ -1,4 +1,7 @@
-
+'''
+@Author: Akash Choudhary
+         20BM6JP46
+'''
 
 import torch
 import torch.nn as nn
@@ -7,6 +10,9 @@ import torch.optim as optim
 import random
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+Hindi_vocab_size = 5327
+eng_vocab_size = 3579
 
 class encoder(nn.Module):
 
@@ -41,7 +47,6 @@ class encoder(nn.Module):
 
     return output, hidden_state, cell_state
 
-"""### Decoder"""
 
 class decoder(nn.Module):
 
@@ -73,8 +78,6 @@ class decoder(nn.Module):
     output = output.squeeze(dim=1) #shape [batch, hindi_vocab_size]
 
     return output, hidden_state, cell_state
-
-"""### Attention Decoder"""
 
 class AttnDecoder(nn.Module):
   def __init__(self, input_size, embedding_size, hidden_size, layers):
@@ -122,8 +125,6 @@ class AttnDecoder(nn.Module):
     del input_new
     return output, hidden_state, cell_state
 
-"""### Sequence2Sequence"""
-
 class seq2seq(nn.Module):
   def __init__(self, encoder, decoder):
     super().__init__()
@@ -158,8 +159,6 @@ class seq2seq(nn.Module):
     
     return output  #shape[seq_len, batch_size, vocab_size]
 
-"""### Attention Sequence2Sequence"""
-
 class Attnseq2seq(nn.Module):
   def __init__(self, encoder, att_decoder):
     super().__init__()
@@ -174,7 +173,7 @@ class Attnseq2seq(nn.Module):
     '''
     batch_size = input.shape[0]
     seq_len = target.shape[1]
-    hindi_vocab_size = Hindi_vocab.vocab_size
+    hindi_vocab_size = Hindi_vocab_size
 
     output = torch.zeros((seq_len, batch_size, hindi_vocab_size)).to(device)
 
@@ -194,15 +193,17 @@ class Attnseq2seq(nn.Module):
     
     return output  #shape[seq_len, batch_size, vocab_size]
 
-"""## Loading Trained Model"""
+## Loading the model
 
 def Model(
+    eng_input_size,
+    hin_input_size,
     embedding_size = 256,
     hidden_size = 256,
     layers = 1,
     bidirection = True
     ):
-    ENC = encoder(input_size=3578, embedding_size=256, hidden_size=256, layers=1, bidirectional=True).to(device)
-    DE = AttnDecoder(input_size=5463, embedding_size=256, hidden_size=256, layers=1).to(device)
+    ENC = encoder(input_size=eng_input_size, embedding_size=embedding_size, hidden_size=hidden_size, layers=layers, bidirectional=bidirection).to(device)
+    DE = AttnDecoder(input_size=hin_input_size, embedding_size=embedding_size, hidden_size=hidden_size, layers=layers).to(device)
     model = Attnseq2seq(ENC,DE).to(device)
     return model

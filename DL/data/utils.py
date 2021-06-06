@@ -72,7 +72,7 @@ class vocab:
 
 ## Parallelize the Dataset
 class parallelData(Dataset):
-    def __init__(self):
+    def __init__(self, English_vocab, Hindi_vocab):
         self.x = English_vocab.x
         self.y = Hindi_vocab.x
 

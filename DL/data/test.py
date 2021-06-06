@@ -40,8 +40,8 @@ for idx in Hindi_vocab.x[5]:
   print(Hindi_vocab.idx2word[int(idx)],end=' ')
 
 ## Modeling
-model = models.Model()
-model.load_state_dict(torch.load('/content/VSCode/DL/data/model50thousand.pt'))
+model = models.Model(English_vocab.vocab_size, Hindi_vocab.vocab_size)
+model.load_state_dict(torch.load('/content/VSCode/DL/data/model_50k_.pt'))
 ## Loaded MOdel
 print(model.eval())
 
@@ -69,7 +69,7 @@ def prediction(x):
     for idx in x:
       if idx == 0:
         break
-      print(English_vocab.idx2word[int(idx)],end=' ')
+      #print(English_vocab.idx2word[int(idx)],end=' ')
     
     print()
 
@@ -99,11 +99,6 @@ def translate(input):
       return guess
 
 def get(sent):
-  # sentence = sentence.lower()
-  # sent = sentence.split()
-  # sent.append('<END>')
-  # print(sent)
-
   toks = []
   for word in sent:
     if English_vocab.word2idx.get(word) is None:
@@ -126,7 +121,6 @@ for j in tqdm(range(int(tdata.shape[0]/2))):
     res = get(tdata[j,0])[:-1]
   except Exception as e:
     continue
-  print('English Sentence converted and Predicted Hindi Sentence:')
   #print(tdata[j,0][:-1])
   print(res)
 '''
